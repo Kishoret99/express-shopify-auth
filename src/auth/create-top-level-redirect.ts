@@ -1,22 +1,22 @@
 import querystring from 'querystring';
 
-import {Context} from 'koa';
-
 import redirectionPage from './redirection-page';
+import {Request, Response} from 'express';
 
 export default function createTopLevelRedirect(apiKey: string, path: string) {
-  return function topLevelRedirect(ctx: Context) {
-    const {query} = ctx;
+  return function topLevelRedirect(req: Request, res: Response) {
+    const {query} = req;
     const {shop, host} = query;
-
-    const params = {shop};
+    const params: any = {shop};
     const queryString = querystring.stringify(params);
 
-    ctx.body = redirectionPage({
-      origin: shop,
-      redirectTo: `https://${ctx.host}${path}?${queryString}`,
-      apiKey,
-      host,
-    });
+    res.send(
+      redirectionPage({
+        origin: shop,
+        redirectTo: `https://${req.hostname}${path}?${queryString}`,
+        apiKey,
+        host,
+      }),
+    );
   };
 }

@@ -1,8 +1,6 @@
 import Shopify from '@shopify/shopify-api';
 import {Session} from '@shopify/shopify-api/dist/auth/session';
 
-import {Context} from 'koa';
-
 import {AccessMode, NextFunction} from '../types';
 import {TEST_COOKIE_NAME, TOP_LEVEL_OAUTH_COOKIE_NAME} from '../index';
 
@@ -10,6 +8,7 @@ import {Routes} from './types';
 import {redirectToAuth} from './utilities';
 import {DEFAULT_ACCESS_MODE} from '../auth';
 import {HttpResponseError} from '@shopify/shopify-api/dist/error';
+import {Request, Response} from 'express';
 
 export const REAUTH_HEADER = 'X-Shopify-API-Request-Failure-Reauthorize';
 export const REAUTH_URL_HEADER =
@@ -21,13 +20,14 @@ export function verifyToken(
   returnHeader = false,
 ) {
   return async function verifyTokenMiddleware(
-    ctx: Context,
+    req: Request,
+    res: Response,
     next: NextFunction,
   ) {
     let session: Session | undefined;
     session = await Shopify.Utils.loadCurrentSession(
-      ctx.req,
-      ctx.res,
+      req,
+      res,
       accessMode === 'online',
     );
 
@@ -47,7 +47,7 @@ export function verifyToken(
           );
           await client.get({path: 'shop'});
 
-          ctx.cookies.set(TOP_LEVEL_OAUTH_COOKIE_NAME);
+          res.cookie(TOP_LEVEL_OAUTH_COOKIE_NAME, 1);
           await next();
           return;
         } catch (e) {
@@ -60,17 +60,18 @@ export function verifyToken(
       }
     }
 
-    ctx.cookies.set(TEST_COOKIE_NAME, '1');
+    res.cookie(TEST_COOKIE_NAME, '1');
 
     if (returnHeader) {
-      ctx.response.status = 403;
-      ctx.response.set(REAUTH_HEADER, '1');
+      res.status(403);
+      res.header(REAUTH_HEADER, '1');
 
       let shop: string | undefined = undefined;
       if (session) {
         shop = session.shop;
       } else if (Shopify.Context.IS_EMBEDDED_APP) {
-        const authHeader: string | undefined = ctx.req.headers.authorization;
+        const authHeader: string | undefined = req.headers
+          .authorization as string;
         const matches = authHeader?.match(/Bearer (.*)/);
         if (matches) {
           const payload = Shopify.Utils.decodeSessionToken(matches[1]);
@@ -79,11 +80,11 @@ export function verifyToken(
       }
 
       if (shop) {
-        ctx.response.set(REAUTH_URL_HEADER, `${routes.authRoute}?shop=${shop}`);
+        res.set(REAUTH_URL_HEADER, `${routes.authRoute}?shop=${shop}`);
       }
       return;
     } else {
-      redirectToAuth(routes, ctx);
+      redirectToAuth(routes, req, res);
     }
   };
 }

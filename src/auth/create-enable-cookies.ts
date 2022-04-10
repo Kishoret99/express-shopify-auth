@@ -1,5 +1,3 @@
-import {Context} from 'koa';
-
 import {OAuthStartOptions} from '../types';
 
 import Shopify from '@shopify/shopify-api';
@@ -8,6 +6,7 @@ import css from './client/polaris-css';
 import itpHelper from './client/itp-helper';
 import topLevelInteraction from './client/top-level-interaction';
 import Error from './errors';
+import {Request, Response} from 'express';
 
 const HEADING = 'Enable cookies';
 const BODY =
@@ -17,17 +16,17 @@ information. They expire after 30 days.`;
 const ACTION = 'Enable cookies';
 
 export default function createEnableCookies({prefix}: OAuthStartOptions) {
-  return function enableCookies(ctx: Context) {
-    const {query} = ctx;
+  return function enableCookies(req: Request, res: Response) {
+    const {query} = req;
     const shop = query.shop as string;
     const host = query.host as string;
 
     if (shop == null) {
-      ctx.throw(400, Error.ShopParamMissing);
+      res.status(400).send(Error.ShopParamMissing);
       return;
     }
 
-    ctx.body = `
+    res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,6 +82,6 @@ export default function createEnableCookies({prefix}: OAuthStartOptions) {
     </div>
   </main>
 </body>
-</html>`;
+</html>`);
   };
 }

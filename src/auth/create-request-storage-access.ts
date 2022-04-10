@@ -1,5 +1,3 @@
-import {Context} from 'koa';
-
 import Shopify from '@shopify/shopify-api';
 import fs from 'fs';
 import path from 'path';
@@ -10,6 +8,7 @@ import itpHelper from './client/itp-helper';
 import requestStorageAccess from './client/request-storage-access';
 import storageAccessHelper from './client/storage-access-helper';
 import Error from './errors';
+import {Request, Response} from 'express';
 
 const HEADING = 'This app needs access to your browser data';
 const BODY =
@@ -23,17 +22,17 @@ const APP_BRIDGE_SCRIPT = fs.readFileSync(
 export default function createRequestStorageAccess({
   prefix,
 }: OAuthStartOptions) {
-  return function requestStorage(ctx: Context) {
-    const {query} = ctx;
+  return function requestStorage(req: Request, res: Response) {
+    const {query} = req;
     const shop = query.shop as string;
     const host = query.host as string;
 
     if (shop == null) {
-      ctx.throw(400, Error.ShopParamMissing);
+      res.sendStatus(400).send(Error.ShopParamMissing);
       return;
     }
 
-    ctx.body = `
+    res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,6 +86,6 @@ export default function createRequestStorageAccess({
     </div>
   </main>
 </body>
-</html>`;
+</html>`);
   };
 }

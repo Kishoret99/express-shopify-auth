@@ -1,5 +1,3 @@
-import {Context} from 'koa';
-
 import {OAuthStartOptions, AccessMode, NextFunction} from '../types';
 
 import getCookieOptions from './cookie-options';
@@ -9,6 +7,7 @@ import createRequestStorageAccess from './create-request-storage-access';
 import setUserAgent from './set-user-agent';
 
 import Shopify, {AuthQuery} from '@shopify/shopify-api';
+import {Request, Response} from 'express';
 
 const DEFAULT_MYSHOPIFY_DOMAIN = 'myshopify.com';
 export const DEFAULT_ACCESS_MODE: AccessMode = 'online';
@@ -18,16 +17,16 @@ export const TEST_COOKIE_NAME = 'shopifyTestCookie';
 export const GRANTED_STORAGE_ACCESS_COOKIE_NAME =
   'shopify.granted_storage_access';
 
-function hasCookieAccess({cookies}: Context) {
-  return Boolean(cookies.get(TEST_COOKIE_NAME));
+function hasCookieAccess({cookies}: Request) {
+  return Boolean(cookies[TEST_COOKIE_NAME]);
 }
 
-function grantedStorageAccess({cookies}: Context) {
-  return Boolean(cookies.get(GRANTED_STORAGE_ACCESS_COOKIE_NAME));
+function grantedStorageAccess({cookies}: Request) {
+  return Boolean(cookies[GRANTED_STORAGE_ACCESS_COOKIE_NAME]);
 }
 
-function shouldPerformInlineOAuth({cookies}: Context) {
-  return Boolean(cookies.get(TOP_LEVEL_OAUTH_COOKIE_NAME));
+function shouldPerformInlineOAuth({cookies}: Request) {
+  return Boolean(cookies[TOP_LEVEL_OAUTH_COOKIE_NAME]);
 }
 
 export default function createShopifyAuth(options: OAuthStartOptions) {
@@ -55,84 +54,88 @@ export default function createShopifyAuth(options: OAuthStartOptions) {
 
   setUserAgent();
 
-  return async function shopifyAuth(ctx: Context, next: NextFunction) {
-    ctx.cookies.secure = true;
+  return async function shopifyAuth(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    req.cookies.secure = true;
 
     if (
-      ctx.path === oAuthStartPath &&
-      !hasCookieAccess(ctx) &&
-      !grantedStorageAccess(ctx)
+      req.path === oAuthStartPath &&
+      !hasCookieAccess(req) &&
+      !grantedStorageAccess(req)
     ) {
-      await requestStorageAccess(ctx);
+      await requestStorageAccess(req, res);
       return;
     }
 
     if (
-      ctx.path === inlineOAuthPath ||
-      (ctx.path === oAuthStartPath && shouldPerformInlineOAuth(ctx))
+      req.path === inlineOAuthPath ||
+      (req.path === oAuthStartPath && shouldPerformInlineOAuth(req))
     ) {
-      const shop = ctx.query.shop as string;
+      const shop = req.query.shop as string;
       if (shop == null) {
-        ctx.throw(400);
+        res.send(400);
       }
 
-      ctx.cookies.set(TOP_LEVEL_OAUTH_COOKIE_NAME, '', getCookieOptions(ctx));
+      res.cookie(TOP_LEVEL_OAUTH_COOKIE_NAME, '', getCookieOptions(req));
       const redirectUrl = await Shopify.Auth.beginAuth(
-        ctx.req,
-        ctx.res,
+        req,
+        res,
         shop,
         oAuthCallbackPath,
         config.accessMode === 'online',
       );
-      ctx.redirect(redirectUrl);
+      res.redirect(redirectUrl);
       return;
     }
 
-    if (ctx.path === oAuthStartPath) {
-      await topLevelOAuthRedirect(ctx);
+    if (req.path === oAuthStartPath) {
+      await topLevelOAuthRedirect(req, res);
       return;
     }
 
-    if (ctx.path === oAuthCallbackPath) {
+    if (req.path === oAuthCallbackPath) {
       try {
         const authQuery: AuthQuery = {
-          code: ctx.query.code as string,
-          shop: ctx.query.shop as string,
-          host: ctx.query.host as string,
-          state: ctx.query.state as string,
-          timestamp: ctx.query.timestamp as string,
-          hmac: ctx.query.hmac as string,
+          code: req.query.code as string,
+          shop: req.query.shop as string,
+          host: req.query.host as string,
+          state: req.query.state as string,
+          timestamp: req.query.timestamp as string,
+          hmac: req.query.hmac as string,
         };
 
-        ctx.state.shopify = await Shopify.Auth.validateAuthCallback(
-          ctx.req,
-          ctx.res,
+        res.locals.shopify = await Shopify.Auth.validateAuthCallback(
+          req,
+          res,
           authQuery,
         );
 
         if (config.afterAuth) {
-          await config.afterAuth(ctx);
+          await config.afterAuth(req, res);
         }
       } catch (e) {
         switch (true) {
           case e instanceof Shopify.Errors.InvalidOAuthError:
-            ctx.throw(400, e.message);
+            res.status(400).send(e.message);
             break;
           case e instanceof Shopify.Errors.CookieNotFound:
           case e instanceof Shopify.Errors.SessionNotFound:
             // This is likely because the OAuth session cookie expired before the merchant approved the request
-            ctx.redirect(`${oAuthStartPath}?shop=${ctx.query.shop}`);
+            res.redirect(`${oAuthStartPath}?shop=${req.query.shop}`);
             break;
           default:
-            ctx.throw(500, e.message);
+            res.status(500).send(e.message);
             break;
         }
       }
       return;
     }
 
-    if (ctx.path === enableCookiesPath) {
-      await enableCookies(ctx);
+    if (req.path === enableCookiesPath) {
+      await enableCookies(req, res);
       return;
     }
 
