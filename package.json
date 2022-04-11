@@ -1,6 +1,6 @@
 {
   "name": "@vendorworks/express-shopify-auth",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "license": "MIT",
   "description": "Middleware to authenticate a Koa application with Shopify",
   "main": "dist/src/index.js",

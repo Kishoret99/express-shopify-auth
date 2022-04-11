@@ -106,12 +106,19 @@ export default function createShopifyAuth(options: OAuthStartOptions) {
           timestamp: req.query.timestamp as string,
           hmac: req.query.hmac as string,
         };
+        let shopifyResponse;
+        try {
+          shopifyResponse = await Shopify.Auth.validateAuthCallback(
+            req,
+            res,
+            authQuery,
+          );
+        } catch (e) {
+          console.log('error', e);
+          throw e;
+        }
 
-        res.locals.shopify = await Shopify.Auth.validateAuthCallback(
-          req,
-          res,
-          authQuery,
-        );
+        res.locals.shopify = shopifyResponse;
 
         if (config.afterAuth) {
           await config.afterAuth(req, res);
