@@ -1306,10 +1306,10 @@
   resolved "https://registry.npmjs.org/@shopify/prettier-config/-/prettier-config-1.1.2.tgz"
   integrity sha512-5ugCL9sPGzmOaZjeRGaWUWhHgAbemrS6z+R7v6gwiD+BiqSeoFhIY+imLpfdFCVpuOGalpHeCv6o3gv++EHs0A==
 
-"@shopify/shopify-api@^1.2.1":
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/@shopify/shopify-api/-/shopify-api-1.4.3.tgz#b2398117bc6e59e0d59e410ebba5272795c5f2e8"
-  integrity sha512-X2/sXW0SQKeT8XSGNiJKRnIBPAbjR1dmyi4XgnARyyXI2LgE8Lm15Jh/JRmb4Gm+BZ/SuOnjDlDw2g6Y3MEtDw==
+"@shopify/shopify-api@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@shopify/shopify-api/-/shopify-api-2.1.0.tgz#750519188cf4cad8c65170ed05e4bd4aa65a5285"
+  integrity sha512-CI+CUc0b2+Iv4AFhKaIAvMpbTddyTIKM3O2Qk0wS1gcj5nRdSFg6JbeVThNOYYu/7rzf93J8qYF1E4OZl920CQ==
   dependencies:
     "@shopify/network" "^1.5.1"
     "@types/jsonwebtoken" "^8.5.0"

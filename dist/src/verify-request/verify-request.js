@@ -19,12 +19,12 @@ function verifyRequest(givenOptions) {
     {authRoute: '/auth', fallbackRoute: '/auth'},
     givenOptions,
   );
-  return compose_middleware_1.compose([
-    login_again_if_different_shop_1.loginAgainIfDifferentShop(
+  return (0, compose_middleware_1.compose)([
+    (0, login_again_if_different_shop_1.loginAgainIfDifferentShop)(
       routes,
       accessMode,
     ),
-    verify_token_1.verifyToken(routes, accessMode, returnHeader),
+    (0, verify_token_1.verifyToken)(routes, accessMode, returnHeader),
   ]);
 }
 exports.default = verifyRequest;

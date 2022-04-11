@@ -1,6 +1,6 @@
 {
   "name": "@vendorworks/express-shopify-auth",
-  "version": "5.0.5",
+  "version": "5.1.0",
   "license": "MIT",
   "description": "Middleware to authenticate a Koa application with Shopify",
   "main": "dist/src/index.js",
@@ -28,7 +28,7 @@
     "koa-compose": ">=3.0.0 <4.0.0",
     "nonce": "^1.0.4",
     "tslib": "^1.9.3",
-    "@shopify/shopify-api": "^1.2.1",
+    "@shopify/shopify-api": "^2.1.0",
     "compose-middleware": "5.0.1"
   },
   "devDependencies": {

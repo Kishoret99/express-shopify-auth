@@ -11,9 +11,12 @@ function createTopLevelRedirect(apiKey, path) {
     var params = {shop: shop};
     var queryString = querystring_1.default.stringify(params);
     res.send(
-      redirection_page_1.default({
+      (0, redirection_page_1.default)({
         origin: shop,
-        redirectTo: 'https://' + req.hostname + path + '?' + queryString,
+        redirectTo: 'https://'
+          .concat(req.hostname)
+          .concat(path, '?')
+          .concat(queryString),
         apiKey: apiKey,
         host: host,
       }),

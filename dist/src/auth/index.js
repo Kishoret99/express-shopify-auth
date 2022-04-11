@@ -61,9 +61,9 @@ function createShopifyAuth(options) {
   (0, set_user_agent_1.default)();
   return function shopifyAuth(req, res, next) {
     return tslib_1.__awaiter(this, void 0, void 0, function () {
-      var shop, redirectUrl, authQuery, _a, e_1;
-      return tslib_1.__generator(this, function (_b) {
-        switch (_b.label) {
+      var shop, redirectUrl, authQuery, shopifyResponse, e_1, e_2;
+      return tslib_1.__generator(this, function (_a) {
+        switch (_a.label) {
           case 0:
             req.cookies.secure = true;
             if (
@@ -76,7 +76,7 @@ function createShopifyAuth(options) {
               return [3 /*break*/, 2];
             return [4 /*yield*/, requestStorageAccess(req, res)];
           case 1:
-            _b.sent();
+            _a.sent();
             return [2 /*return*/];
           case 2:
             if (
@@ -106,20 +106,20 @@ function createShopifyAuth(options) {
               ),
             ];
           case 3:
-            redirectUrl = _b.sent();
+            redirectUrl = _a.sent();
             res.redirect(redirectUrl);
             return [2 /*return*/];
           case 4:
             if (!(req.path === oAuthStartPath)) return [3 /*break*/, 6];
             return [4 /*yield*/, topLevelOAuthRedirect(req, res)];
           case 5:
-            _b.sent();
+            _a.sent();
             return [2 /*return*/];
           case 6:
-            if (!(req.path === oAuthCallbackPath)) return [3 /*break*/, 13];
-            _b.label = 7;
+            if (!(req.path === oAuthCallbackPath)) return [3 /*break*/, 16];
+            _a.label = 7;
           case 7:
-            _b.trys.push([7, 11, , 12]);
+            _a.trys.push([7, 14, , 15]);
             authQuery = {
               code: req.query.code,
               shop: req.query.shop,
@@ -128,7 +128,10 @@ function createShopifyAuth(options) {
               timestamp: req.query.timestamp,
               hmac: req.query.hmac,
             };
-            _a = res.locals;
+            shopifyResponse = void 0;
+            _a.label = 8;
+          case 8:
+            _a.trys.push([8, 10, , 11]);
             return [
               4 /*yield*/,
               shopify_api_1.default.Auth.validateAuthCallback(
@@ -137,46 +140,53 @@ function createShopifyAuth(options) {
                 authQuery,
               ),
             ];
-          case 8:
-            _a.shopify = _b.sent();
-            if (!config.afterAuth) return [3 /*break*/, 10];
-            return [4 /*yield*/, config.afterAuth(req, res)];
           case 9:
-            _b.sent();
-            _b.label = 10;
+            shopifyResponse = _a.sent();
+            return [3 /*break*/, 11];
           case 10:
-            return [3 /*break*/, 12];
+            e_1 = _a.sent();
+            console.log('error', e_1);
+            throw e_1;
           case 11:
-            e_1 = _b.sent();
+            res.locals.shopify = shopifyResponse;
+            if (!config.afterAuth) return [3 /*break*/, 13];
+            return [4 /*yield*/, config.afterAuth(req, res)];
+          case 12:
+            _a.sent();
+            _a.label = 13;
+          case 13:
+            return [3 /*break*/, 15];
+          case 14:
+            e_2 = _a.sent();
             switch (true) {
-              case e_1 instanceof
+              case e_2 instanceof
                 shopify_api_1.default.Errors.InvalidOAuthError:
-                res.status(400).send(e_1.message);
+                res.status(400).send(e_2.message);
                 break;
-              case e_1 instanceof shopify_api_1.default.Errors.CookieNotFound:
-              case e_1 instanceof shopify_api_1.default.Errors.SessionNotFound:
+              case e_2 instanceof shopify_api_1.default.Errors.CookieNotFound:
+              case e_2 instanceof shopify_api_1.default.Errors.SessionNotFound:
                 // This is likely because the OAuth session cookie expired before the merchant approved the request
                 res.redirect(
                   ''.concat(oAuthStartPath, '?shop=').concat(req.query.shop),
                 );
                 break;
               default:
-                res.status(500).send(e_1.message);
+                res.status(500).send(e_2.message);
                 break;
             }
-            return [3 /*break*/, 12];
-          case 12:
-            return [2 /*return*/];
-          case 13:
-            if (!(req.path === enableCookiesPath)) return [3 /*break*/, 15];
-            return [4 /*yield*/, enableCookies(req, res)];
-          case 14:
-            _b.sent();
-            return [2 /*return*/];
+            return [3 /*break*/, 15];
           case 15:
-            return [4 /*yield*/, next()];
+            return [2 /*return*/];
           case 16:
-            _b.sent();
+            if (!(req.path === enableCookiesPath)) return [3 /*break*/, 18];
+            return [4 /*yield*/, enableCookies(req, res)];
+          case 17:
+            _a.sent();
+            return [2 /*return*/];
+          case 18:
+            return [4 /*yield*/, next()];
+          case 19:
+            _a.sent();
             return [2 /*return*/];
         }
       });

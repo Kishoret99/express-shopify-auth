@@ -7,12 +7,12 @@ var create_top_level_redirect_1 = tslib_1.__importDefault(
 var cookie_options_1 = tslib_1.__importDefault(require('./cookie-options'));
 var index_1 = require('./index');
 function createTopLevelOAuthRedirect(apiKey, path) {
-  var redirect = create_top_level_redirect_1.default(apiKey, path);
+  var redirect = (0, create_top_level_redirect_1.default)(apiKey, path);
   return function topLevelOAuthRedirect(req, res) {
     res.cookie(
       index_1.TOP_LEVEL_OAUTH_COOKIE_NAME,
       '1',
-      cookie_options_1.default(req),
+      (0, cookie_options_1.default)(req),
     );
     redirect(req, res);
   };
