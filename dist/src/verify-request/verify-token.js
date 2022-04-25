@@ -71,7 +71,10 @@ function verifyToken(routes, accessMode, returnHeader) {
             return [2 /*return*/];
           case 5:
             e_1 = _a.sent();
-            if (e_1 instanceof error_1.HttpResponseError && e_1.code == 401) {
+            if (
+              e_1 instanceof error_1.HttpResponseError &&
+              e_1.response.code == 401
+            ) {
               // only catch 401 errors
             } else {
               throw e_1;
